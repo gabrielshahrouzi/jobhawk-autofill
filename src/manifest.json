@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "UML Job Autofill",
+  "version": "1.0",
+  "description": "Auto fill UML job application fields",
+  "permissions": ["scripting", "activeTab"],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
