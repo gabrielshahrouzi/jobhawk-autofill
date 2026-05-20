@@ -1,0 +1,21 @@
+name: Validate extension
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate manifest JSON
+        run: python3 -m json.tool src/manifest.json
+
+      - name: Validate popup and content JavaScript syntax
+        run: |
+          node -e "const fs=require('fs'); ['src/popup.js','src/content.js'].forEach(f=>new Function(fs.readFileSync(f,'utf8')));"
