@@ -40,7 +40,7 @@
           major: 'Computer Science',
           campusWork: 'yes',
           availability: [
-            'monday morning','monday afternoon','tuesday morning','tuesday afternoon','wednesday morning','wednesday afternoon','thursday morning','thursday afternoon','friday morning','friday afternoon'
+            'monday morning','monday afternoon','tuesday morning','tuesday afternoon','wednesday morning','wednesday afternoon','thursday morning','thursday afternoon','friday morning','friday afternoon', 'evenings', 'weekends'
           ],
           resumeData: null,
           resumeName: null

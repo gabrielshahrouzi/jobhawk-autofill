@@ -157,32 +157,8 @@
 
     if (settings.resumeName) elems.resumeName.textContent = settings.resumeName;
     elems.status.textContent = 'Loaded saved settings';
-    // Create fill button for manual testing/debugging
-    const fillBtn = document.createElement('button');
-    fillBtn.textContent = 'Fill Application';
-    fillBtn.style.marginTop = '8px';
-    fillBtn.style.width = '100%';
-    fillBtn.addEventListener('click', () => {
-      elems.status.textContent = 'Sending fill request...';
-      // message content script to run autofill (force)
-      chrome.runtime.sendMessage({ action: 'fill' }, resp => {
-        elems.status.textContent = resp && resp.ok ? 'Fill request sent' : 'Fill request sent';
-      });
-    });
-    container.appendChild(fillBtn);
   }
 
   document.addEventListener('DOMContentLoaded', init);
 
 })();
-document.getElementById("fillBtn").addEventListener("click", async () => {
-  const [tab] = await chrome.tabs.query({
-    active: true,
-    currentWindow: true,
-  });
-
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    files: ["content.js"],
-  });
-});
