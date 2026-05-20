@@ -3,8 +3,17 @@
   "name": "UML Job Autofill",
   "version": "1.0",
   "description": "Auto fill UML job application fields",
-  "permissions": ["scripting", "activeTab"],
+  "permissions": ["scripting", "activeTab", "storage"],
   "action": {
     "default_popup": "popup.html"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://jobhawk.studentemployment.ngwebsolutions.com/Jobx_Apply.aspx*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
 }
