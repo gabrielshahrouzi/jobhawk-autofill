@@ -2,6 +2,10 @@
 
 A small Chrome extension (Manifest V3) that automatically fills the JobHawk student employment application form.
 
+## Demo
+
+[![Watch the demo](https://img.youtube.com/vi/JXrAsIIrRDk/0.jpg)](https://youtu.be/JXrAsIIrRDk)
+
 ## What it does
 
 - Detects when the user visits `https://jobhawk.studentemployment.ngwebsolutions.com/Jobx_Apply.aspx*`
