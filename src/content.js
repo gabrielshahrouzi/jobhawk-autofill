@@ -34,7 +34,7 @@
 
   async function loadSettings() {
     return new Promise(resolve => {
-      chrome.storage.local.get(['workAuth','major','campusWork','availability','resumeData','resumeName'], items => {
+      chrome.storage.local.get(['workAuth','major','campusWork','availability','resumeData','resumeName','autoSubmit'], items => {
         const defaults = {
           workAuth: 'yes',
           major: 'Computer Science',
@@ -43,7 +43,8 @@
             'monday morning','monday afternoon','tuesday morning','tuesday afternoon','wednesday morning','wednesday afternoon','thursday morning','thursday afternoon','friday morning','friday afternoon', 'evenings', 'weekends'
           ],
           resumeData: null,
-          resumeName: null
+          resumeName: null,
+          autoSubmit: false
         };
         const out = Object.assign({}, defaults, items);
         if (!Array.isArray(out.availability)) out.availability = defaults.availability.slice();
@@ -168,6 +169,22 @@
         log('no file input found within timeout');
       }
     } catch (e) { log('resume upload error', e); }
+
+    if (settings.autoSubmit) {
+      try {
+        const submitBtn = await waitForAny(() =>
+          document.getElementById('Skin_body_questionCollectionControl_btnSubmit') ||
+          document.querySelector('input[type="submit"][name*="btnSubmit"]')
+        , 10000).catch(() => null);
+        if (submitBtn) {
+          await new Promise(r => setTimeout(r, 500));
+          submitBtn.click();
+          log('auto-submit clicked');
+        } else {
+          log('submit button not found');
+        }
+      } catch (e) { log('auto-submit error', e); }
+    }
 
     log('autofill complete');
   }

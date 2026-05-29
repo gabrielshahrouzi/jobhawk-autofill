@@ -19,7 +19,8 @@
       "weekends"
     ],
     resumeData: null,
-    resumeName: null
+    resumeName: null,
+    autoSubmit: false
   };
 
   const AVAIL_OPTIONS = [
@@ -104,6 +105,14 @@
     const resumeName = document.createElement('div'); resumeName.id='resumeName'; resumeName.style.fontSize='11px'; resumeName.style.marginTop='6px';
     form.appendChild(resumeLabel); form.appendChild(resumeInput); form.appendChild(resumeName);
 
+    // Auto-submit
+    const autoSubmitWrapper = document.createElement('div'); autoSubmitWrapper.style.marginTop = '10px';
+    const autoSubmitCb = document.createElement('input'); autoSubmitCb.type = 'checkbox'; autoSubmitCb.id = 'autoSubmit';
+    const autoSubmitLbl = document.createElement('label'); autoSubmitLbl.htmlFor = 'autoSubmit';
+    autoSubmitLbl.textContent = 'Auto-submit application'; autoSubmitLbl.style.marginLeft = '6px';
+    autoSubmitWrapper.appendChild(autoSubmitCb); autoSubmitWrapper.appendChild(autoSubmitLbl);
+    form.appendChild(autoSubmitWrapper);
+
     // Save status
     const status = document.createElement('div'); status.id='status'; status.style.marginTop='8px'; status.style.fontSize='12px';
     form.appendChild(status);
@@ -128,6 +137,8 @@
       reader.readAsDataURL(f);
     });
 
+    autoSubmitCb.addEventListener('change', () => saveSettings({ autoSubmit: autoSubmitCb.checked }));
+
     // availability change handler
     avList.querySelectorAll('input[type="checkbox"]').forEach(cb => {
       cb.addEventListener('change', () => {
@@ -137,7 +148,7 @@
     });
 
     // expose elements for loading
-    return { waSelect, majorInput, cwSelect, avList, resumeName, status, resumeInput };
+    return { waSelect, majorInput, cwSelect, avList, resumeName, status, resumeInput, autoSubmitCb };
   }
 
   async function init() {
@@ -156,6 +167,7 @@
     });
 
     if (settings.resumeName) elems.resumeName.textContent = settings.resumeName;
+    elems.autoSubmitCb.checked = !!settings.autoSubmit;
     elems.status.textContent = 'Loaded saved settings';
   }
 
