@@ -40,6 +40,69 @@
 
   function qs(sel) { return document.querySelector(sel); }
 
+  let previewBlobUrl = null;
+
+  function revokePreviewBlob() {
+    if (previewBlobUrl) {
+      URL.revokeObjectURL(previewBlobUrl);
+      previewBlobUrl = null;
+    }
+  }
+
+  function isPdfResume(dataUrl, fileName) {
+    if (dataUrl && String(dataUrl).startsWith('data:application/pdf')) return true;
+    return fileName && /\.pdf$/i.test(fileName);
+  }
+
+  async function updateResumePreview(previewEl, previewLabelEl, dataUrl, fileName) {
+    revokePreviewBlob();
+    previewEl.innerHTML = '';
+    previewEl.hidden = true;
+    if (previewLabelEl) previewLabelEl.hidden = true;
+
+    if (!dataUrl || !fileName) return;
+
+    try {
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      previewBlobUrl = URL.createObjectURL(blob);
+
+      previewEl.hidden = false;
+      if (previewLabelEl) previewLabelEl.hidden = false;
+
+      if (isPdfResume(dataUrl, fileName)) {
+        const embed = document.createElement('embed');
+        embed.type = 'application/pdf';
+        embed.src = previewBlobUrl;
+        embed.className = 'resume-pdf-embed';
+        embed.title = fileName;
+        previewEl.appendChild(embed);
+      } else {
+        const note = document.createElement('p');
+        note.className = 'resume-preview-note';
+        note.textContent = 'Word documents cannot be previewed here. Open the file in a new tab to confirm it is the correct resume.';
+        previewEl.appendChild(note);
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 'resume-preview-actions';
+      const openLink = document.createElement('a');
+      openLink.href = previewBlobUrl;
+      openLink.target = '_blank';
+      openLink.rel = 'noopener';
+      openLink.textContent = isPdfResume(dataUrl, fileName)
+        ? 'Open full size in new tab'
+        : 'Open resume in new tab';
+      actions.appendChild(openLink);
+      previewEl.appendChild(actions);
+    } catch (err) {
+      console.error('popup: resume preview failed', err);
+      previewEl.hidden = false;
+      if (previewLabelEl) previewLabelEl.hidden = false;
+      previewEl.textContent = 'Could not load resume preview.';
+    }
+  }
+
   function saveSettings(obj) {
     chrome.storage.local.set(obj, () => {
       console.log('popup: saved', obj);
@@ -103,7 +166,12 @@
     const resumeLabel = document.createElement('label'); resumeLabel.textContent='Resume (PDF or DOC)'; resumeLabel.style.display='block';
     const resumeInput = document.createElement('input'); resumeInput.type='file'; resumeInput.id='resume'; resumeInput.accept='application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
     const resumeName = document.createElement('div'); resumeName.id='resumeName'; resumeName.style.fontSize='11px'; resumeName.style.marginTop='6px';
+    const resumePreviewLabel = document.createElement('label'); resumePreviewLabel.className = 'resume-preview-label';
+    resumePreviewLabel.textContent = 'Resume preview';
+    resumePreviewLabel.hidden = true;
+    const resumePreview = document.createElement('div'); resumePreview.id = 'resumePreview'; resumePreview.className = 'resume-preview'; resumePreview.hidden = true;
     form.appendChild(resumeLabel); form.appendChild(resumeInput); form.appendChild(resumeName);
+    form.appendChild(resumePreviewLabel); form.appendChild(resumePreview);
 
     // Auto-submit
     const autoSubmitWrapper = document.createElement('div'); autoSubmitWrapper.style.marginTop = '10px';
@@ -133,6 +201,7 @@
         saveSettings({ resumeData: dataUrl, resumeName: f.name });
         resumeName.textContent = f.name;
         status.textContent = 'Resume loaded';
+        updateResumePreview(resumePreview, resumePreviewLabel, dataUrl, f.name);
       };
       reader.readAsDataURL(f);
     });
@@ -148,7 +217,7 @@
     });
 
     // expose elements for loading
-    return { waSelect, majorInput, cwSelect, avList, resumeName, status, resumeInput, autoSubmitCb };
+    return { waSelect, majorInput, cwSelect, avList, resumeName, status, resumeInput, autoSubmitCb, resumePreview, resumePreviewLabel };
   }
 
   async function init() {
@@ -167,6 +236,9 @@
     });
 
     if (settings.resumeName) elems.resumeName.textContent = settings.resumeName;
+    if (settings.resumeData && settings.resumeName) {
+      updateResumePreview(elems.resumePreview, elems.resumePreviewLabel, settings.resumeData, settings.resumeName);
+    }
     elems.autoSubmitCb.checked = !!settings.autoSubmit;
     elems.status.textContent = 'Loaded saved settings';
   }

@@ -3,9 +3,12 @@
   <head>
     <style>
       body {
-        font-family: Arial;
+        font-family: Arial, sans-serif;
         padding: 10px;
-        width: 200px;
+        width: 380px;
+        max-height: 600px;
+        overflow-y: auto;
+        margin: 0;
       }
 
       button {
@@ -13,6 +16,45 @@
         padding: 10px;
         font-size: 14px;
         cursor: pointer;
+      }
+
+      .resume-preview {
+        margin-top: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background: #f5f5f5;
+        overflow: hidden;
+      }
+
+      .resume-preview-label {
+        display: block;
+        margin-top: 8px;
+        font-size: 12px;
+      }
+
+      .resume-pdf-embed {
+        display: block;
+        width: 100%;
+        height: 240px;
+        border: 0;
+        background: #fff;
+      }
+
+      .resume-preview-note {
+        margin: 10px;
+        font-size: 11px;
+        color: #444;
+        line-height: 1.4;
+      }
+
+      .resume-preview-actions {
+        padding: 6px 8px;
+        border-top: 1px solid #ddd;
+        background: #fff;
+      }
+
+      .resume-preview-actions a {
+        font-size: 11px;
       }
     </style>
   </head>
