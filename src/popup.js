@@ -38,7 +38,7 @@
     "Weekends"
   ];
 
-  function qs(sel) { return document.querySelector(sel); }
+  const POPUP_ICON = "icons/icon48.png";
 
   let previewBlobUrl = null;
 
@@ -113,81 +113,144 @@
     return new Promise(resolve => {
       chrome.storage.local.get(Object.keys(DEFAULTS), items => {
         const out = Object.assign({}, DEFAULTS, items);
-        // ensure availability is array
         if (!Array.isArray(out.availability)) out.availability = DEFAULTS.availability.slice();
         resolve(out);
       });
     });
   }
 
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  function field(labelText, control) {
+    const wrap = el('div', 'field');
+    const label = el('label', 'field-label', labelText);
+    wrap.appendChild(label);
+    wrap.appendChild(control);
+    return wrap;
+  }
+
+  function card(title) {
+    const section = el('section', 'card');
+    section.appendChild(el('h2', 'card-title', title));
+    return section;
+  }
+
+  function buildHeader() {
+    const header = el('header', 'popup-header');
+    const logo = document.createElement('img');
+    logo.className = 'popup-logo';
+    logo.src = POPUP_ICON;
+    logo.alt = '';
+    logo.addEventListener('error', () => logo.classList.add('popup-logo--hidden'));
+
+    const text = el('div', 'popup-header-text');
+    text.appendChild(el('h1', null, 'JobHawk Autofill'));
+    text.appendChild(el('p', null, 'Saved answers apply on the apply page'));
+
+    header.appendChild(logo);
+    header.appendChild(text);
+    return header;
+  }
+
   function buildUI(container) {
     container.innerHTML = '';
+    container.appendChild(buildHeader());
 
-    const form = document.createElement('form');
-    form.style.fontSize = '12px';
+    const form = el('form', 'popup-form');
 
-    // Work Authorization
-    const waLabel = document.createElement('label');
-    waLabel.textContent = 'Work Authorization';
-    waLabel.style.display = 'block';
+    const profileCard = card('Profile');
     const waSelect = document.createElement('select');
     waSelect.id = 'workAuth';
-    ['yes','no'].forEach(v => {
-      const o = document.createElement('option'); o.value = v; o.textContent = v; waSelect.appendChild(o);
+    waSelect.className = 'field-control';
+    ['yes', 'no'].forEach(v => {
+      const o = document.createElement('option');
+      o.value = v;
+      o.textContent = v;
+      waSelect.appendChild(o);
     });
-    form.appendChild(waLabel); form.appendChild(waSelect);
+    profileCard.appendChild(field('Work authorization', waSelect));
 
-    // Major
-    const majorLabel = document.createElement('label');
-    majorLabel.textContent = 'Major'; majorLabel.style.display='block';
-    const majorInput = document.createElement('input'); majorInput.type='text'; majorInput.id='major'; majorInput.style.width='100%';
-    form.appendChild(majorLabel); form.appendChild(majorInput);
+    const majorInput = document.createElement('input');
+    majorInput.type = 'text';
+    majorInput.id = 'major';
+    majorInput.className = 'field-control';
+    profileCard.appendChild(field('Major', majorInput));
 
-    // Campus Work
-    const cwLabel = document.createElement('label'); cwLabel.textContent='Campus Work'; cwLabel.style.display='block';
-    const cwSelect = document.createElement('select'); cwSelect.id='campusWork';
-    ['yes','no'].forEach(v => { const o=document.createElement('option'); o.value=v; o.textContent=v; cwSelect.appendChild(o); });
-    form.appendChild(cwLabel); form.appendChild(cwSelect);
+    const cwSelect = document.createElement('select');
+    cwSelect.id = 'campusWork';
+    cwSelect.className = 'field-control';
+    ['yes', 'no'].forEach(v => {
+      const o = document.createElement('option');
+      o.value = v;
+      o.textContent = v;
+      cwSelect.appendChild(o);
+    });
+    profileCard.appendChild(field('Campus work', cwSelect));
+    form.appendChild(profileCard);
 
-    // Availability
-    const avLabel = document.createElement('label'); avLabel.textContent='Availability'; avLabel.style.display='block';
-    form.appendChild(avLabel);
-    const avList = document.createElement('div'); avList.id='availability';
+    const scheduleCard = card('Availability');
+    const avList = el('div', 'availability-list');
+    avList.id = 'availability';
     AVAIL_OPTIONS.forEach(opt => {
-      const id = 'av_' + opt.replace(/\s+/g,'_').toLowerCase();
-      const wrapper = document.createElement('div'); wrapper.style.marginBottom='4px';
-      const cb = document.createElement('input'); cb.type='checkbox'; cb.id=id; cb.value = opt.toLowerCase();
-      const lbl = document.createElement('label'); lbl.htmlFor=id; lbl.textContent = opt; lbl.style.marginLeft='6px';
-      wrapper.appendChild(cb); wrapper.appendChild(lbl); avList.appendChild(wrapper);
+      const id = 'av_' + opt.replace(/\s+/g, '_').toLowerCase();
+      const item = el('label', 'availability-item');
+      item.htmlFor = id;
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.id = id;
+      cb.value = opt.toLowerCase();
+      item.appendChild(cb);
+      item.appendChild(document.createTextNode(opt));
+      avList.appendChild(item);
     });
-    form.appendChild(avList);
+    scheduleCard.appendChild(avList);
+    form.appendChild(scheduleCard);
 
-    // Resume
-    const resumeLabel = document.createElement('label'); resumeLabel.textContent='Resume (PDF or DOC)'; resumeLabel.style.display='block';
-    const resumeInput = document.createElement('input'); resumeInput.type='file'; resumeInput.id='resume'; resumeInput.accept='application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-    const resumeName = document.createElement('div'); resumeName.id='resumeName'; resumeName.style.fontSize='11px'; resumeName.style.marginTop='6px';
-    const resumePreviewLabel = document.createElement('label'); resumePreviewLabel.className = 'resume-preview-label';
-    resumePreviewLabel.textContent = 'Resume preview';
+    const resumeCard = card('Resume');
+    const resumeInput = document.createElement('input');
+    resumeInput.type = 'file';
+    resumeInput.id = 'resume';
+    resumeInput.accept = 'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    const fileWrap = el('label', 'file-upload');
+    fileWrap.appendChild(resumeInput);
+    resumeCard.appendChild(field('Upload (PDF or Word)', fileWrap));
+
+    const resumeName = el('div', 'resume-name');
+    resumeName.id = 'resumeName';
+    resumeCard.appendChild(resumeName);
+
+    const resumePreviewLabel = el('label', 'resume-preview-label', 'Preview');
     resumePreviewLabel.hidden = true;
-    const resumePreview = document.createElement('div'); resumePreview.id = 'resumePreview'; resumePreview.className = 'resume-preview'; resumePreview.hidden = true;
-    form.appendChild(resumeLabel); form.appendChild(resumeInput); form.appendChild(resumeName);
-    form.appendChild(resumePreviewLabel); form.appendChild(resumePreview);
+    const resumePreview = el('div', 'resume-preview');
+    resumePreview.id = 'resumePreview';
+    resumePreview.hidden = true;
+    resumeCard.appendChild(resumePreviewLabel);
+    resumeCard.appendChild(resumePreview);
+    form.appendChild(resumeCard);
 
-    // Auto-submit
-    const autoSubmitWrapper = document.createElement('div'); autoSubmitWrapper.style.marginTop = '10px';
-    const autoSubmitCb = document.createElement('input'); autoSubmitCb.type = 'checkbox'; autoSubmitCb.id = 'autoSubmit';
-    const autoSubmitLbl = document.createElement('label'); autoSubmitLbl.htmlFor = 'autoSubmit';
-    autoSubmitLbl.textContent = 'Auto-submit application'; autoSubmitLbl.style.marginLeft = '6px';
-    autoSubmitWrapper.appendChild(autoSubmitCb); autoSubmitWrapper.appendChild(autoSubmitLbl);
-    form.appendChild(autoSubmitWrapper);
+    const optionsCard = card('Options');
+    const autoSubmitRow = el('label', 'option-row');
+    autoSubmitRow.htmlFor = 'autoSubmit';
+    const autoSubmitCb = document.createElement('input');
+    autoSubmitCb.type = 'checkbox';
+    autoSubmitCb.id = 'autoSubmit';
+    const autoSubmitText = el('span', null, 'Auto-submit application after autofill');
+    autoSubmitRow.appendChild(autoSubmitCb);
+    autoSubmitRow.appendChild(autoSubmitText);
+    optionsCard.appendChild(autoSubmitRow);
+    form.appendChild(optionsCard);
 
-    // Save status
-    const status = document.createElement('div'); status.id='status'; status.style.marginTop='8px'; status.style.fontSize='12px';
+    const status = el('p', 'status');
+    status.id = 'status';
     form.appendChild(status);
 
     container.appendChild(form);
 
-    // Wire events
     waSelect.addEventListener('change', () => saveSettings({ workAuth: waSelect.value }));
     majorInput.addEventListener('input', () => saveSettings({ major: majorInput.value }));
     cwSelect.addEventListener('change', () => saveSettings({ campusWork: cwSelect.value }));
@@ -196,11 +259,12 @@
       const f = e.target.files && e.target.files[0];
       if (!f) return;
       const reader = new FileReader();
-      reader.onload = function(evt) {
+      reader.onload = function (evt) {
         const dataUrl = evt.target.result;
         saveSettings({ resumeData: dataUrl, resumeName: f.name });
         resumeName.textContent = f.name;
-        status.textContent = 'Resume loaded';
+        status.textContent = 'Resume saved';
+        status.className = 'status status--ok';
         updateResumePreview(resumePreview, resumePreviewLabel, dataUrl, f.name);
       };
       reader.readAsDataURL(f);
@@ -208,7 +272,6 @@
 
     autoSubmitCb.addEventListener('change', () => saveSettings({ autoSubmit: autoSubmitCb.checked }));
 
-    // availability change handler
     avList.querySelectorAll('input[type="checkbox"]').forEach(cb => {
       cb.addEventListener('change', () => {
         const selected = Array.from(avList.querySelectorAll('input:checked')).map(i => i.value);
@@ -216,16 +279,24 @@
       });
     });
 
-    // expose elements for loading
-    return { waSelect, majorInput, cwSelect, avList, resumeName, status, resumeInput, autoSubmitCb, resumePreview, resumePreviewLabel };
+    return {
+      waSelect,
+      majorInput,
+      cwSelect,
+      avList,
+      resumeName,
+      status,
+      resumeInput,
+      autoSubmitCb,
+      resumePreview,
+      resumePreviewLabel
+    };
   }
 
   async function init() {
-    const container = document.body;
-    const elems = buildUI(container);
+    const elems = buildUI(document.body);
     const settings = await readSettings();
 
-    // populate
     elems.waSelect.value = settings.workAuth || DEFAULTS.workAuth;
     elems.majorInput.value = settings.major || DEFAULTS.major;
     elems.cwSelect.value = settings.campusWork || DEFAULTS.campusWork;
@@ -240,9 +311,9 @@
       updateResumePreview(elems.resumePreview, elems.resumePreviewLabel, settings.resumeData, settings.resumeName);
     }
     elems.autoSubmitCb.checked = !!settings.autoSubmit;
-    elems.status.textContent = 'Loaded saved settings';
+    elems.status.textContent = 'Settings loaded';
+    elems.status.className = 'status status--ok';
   }
 
   document.addEventListener('DOMContentLoaded', init);
-
 })();
