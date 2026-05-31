@@ -149,8 +149,8 @@
     logo.addEventListener('error', () => logo.classList.add('popup-logo--hidden'));
 
     const text = el('div', 'popup-header-text');
-    text.appendChild(el('h1', null, 'JobHawk – Application Autofill'));
-    text.appendChild(el('p', null, 'Your saved profile for JobHawk apply pages'));
+    text.appendChild(el('h1', null, 'Application Autofill for JobHawk'));
+    text.appendChild(el('p', null, 'Your saved profile, ready when you apply'));
 
     header.appendChild(logo);
     header.appendChild(text);

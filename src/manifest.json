@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "JobHawk – Application Autofill",
+  "name": "Application Autofill for JobHawk",
   "version": "1.1.0",
-  "description": "Autofill JobHawk application forms with your saved profile, availability, resume preview, and optional auto-submit.",
+  "description": "Save your profile once and autofill application forms on JobHawk with availability, resume preview, and optional auto-submit.",
   "permissions": ["storage"],
   "icons": {
     "16": "icons/icon16.png",
