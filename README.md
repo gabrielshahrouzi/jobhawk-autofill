@@ -1,6 +1,6 @@
-# JobHawk Autofill
+# JobHawk – Application Autofill
 
-A small Chrome extension (Manifest V3) that automatically fills the JobHawk student employment application form.
+A Chrome extension (Manifest V3) that autofills JobHawk student employment application forms using your saved profile, availability, resume, and optional auto-submit.
 
 ## Demo
 
