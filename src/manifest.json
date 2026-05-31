@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "UML Job Autofill",
-  "version": "1.0",
+  "version": "1.1.0",
   "description": "Auto fill UML job application fields",
   "permissions": ["storage"],
   "icons": {
